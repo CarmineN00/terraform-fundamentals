@@ -8,3 +8,10 @@ variable "region" {
 variable "name" {
   description = "The operator name running this configuration"
 }
+
+locals {
+  security_groups = {
+    sg_ping = aws_security_group.sg_ping.id,
+    sg_8080 = aws_security_group.sg_8080.id,
+  }
+}
