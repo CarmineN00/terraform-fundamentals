@@ -2,8 +2,27 @@
 # SPDX-License-Identifier: MPL-2.0
 
 provider "aws" {
-  region = "us-east-1"
+  region = data.terraform_remote_state.vpc.outputs.aws_region
 }
+
+data "terraform_remote_state" "vpc" {
+  backend = "local"
+
+  config = {
+    path = "../learn-terraform-data-sources-vpc/terraform.tfstate"
+  }
+}
+
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
 
 resource "random_string" "lb_id" {
   length  = 3
@@ -42,12 +61,13 @@ module "elb_http" {
 }
 
 resource "aws_instance" "app" {
-  ami = "ami-04d29b6f966df1537"
+  count = var.instances_per_subnet * length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)
+  ami = data.aws_ami.amazon_linux.id
 
   instance_type = var.instance_type
 
-  subnet_id              = ""
-  vpc_security_group_ids = []
+  subnet_id              = data.terraform_remote_state.vpc.outputs.private_subnet_ids[count.index % length(data.terraform_remote_state.vpc.outputs.private_subnet_ids)]
+  vpc_security_group_ids = data.terraform_remote_state.vpc.outputs.app_security_group_ids
 
   user_data = <<-EOF
     #!/bin/bash
