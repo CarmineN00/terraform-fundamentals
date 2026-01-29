@@ -4,7 +4,7 @@
 variable "aws_region" {
   description = "AWS region for all resources."
   type        = string
-  default     = "us-east-2"
+  default     = "eu-central-1"
 }
 
 variable "project_name" {
@@ -87,4 +87,10 @@ variable "private_subnet_cidr_blocks" {
     "10.0.115.0/24",
     "10.0.116.0/24"
   ]
+}
+
+variable "instances_per_subnet" {
+  description = "Number of EC2 instances in each private subnet"
+  type        = number
+  default     = 2
 }
